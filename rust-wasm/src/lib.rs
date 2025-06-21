@@ -25,26 +25,30 @@ impl std::fmt::Display for EmailParseError {
 }
 
 fn score_domain(domain: &str) -> f64 {
-    return 80.0;
+    let domain_lower = domain.to_lowercase();
+    
+    let trusted_domains = vec![
+        "google.com",
+        "outlook.com", 
+        "yahoo.com"
+    ];
+    
+    let disposable_domains = vec![
+        "mailinator.com",
+        "tempmail.com"
+    ];
+    
+    if trusted_domains.contains(&domain_lower.as_str()) {
+        return 80.0;
+    }
+    
+    if disposable_domains.contains(&domain_lower.as_str()) {
+        return 20.0;
+    }
+    
+    return 50.0;
 }
 
-/**
- * Takes an email string as input.
- * Validates the email format using regex.
- * Extracts the domain and local parts.
- * Returns a structured result with validation status and parsed components
- * -----
- * 
- * Required Features
- * 1. Email validation with comprehensive regex checking
- * 2. Domain extraction and basic validation (no empty domains, valid TLD format)
- * 3. Error handling for various edge cases
- * - Invalid email formats
- * - Empty strings
- * - Extremely long inputs (>320 characters - RFC 5321 limit)
- * - Special characters that might cause issues
- * - Unicode/international domain handling
- */
 pub fn parse_and_validate_email(email: &str) -> Result<EmailParseResult, EmailParseError> {
     // Check for empty input
     if email.is_empty() {
@@ -188,13 +192,23 @@ mod tests {
         assert_eq!(result.error_message, Some("Email exceeds maximum length of 320 characters".to_string()));
     }
 
-    // TODO: Low priority 
     #[test]
     fn test_domain_scoring() {
-        // TODO: Test domain scoring logic   
-        let domain = "example.com";
-        let result = score_domain(domain);
-        assert_eq!(result, 80.0);
+        // Test trusted domains
+        assert_eq!(score_domain("google.com"), 80.0);
+        assert_eq!(score_domain("outlook.com"), 80.0);
+        assert_eq!(score_domain("yahoo.com"), 80.0);
+        assert_eq!(score_domain("GOOGLE.COM"), 80.0); // Case insensitive
+        
+        // Test disposable domains
+        assert_eq!(score_domain("mailinator.com"), 20.0);
+        assert_eq!(score_domain("tempmail.com"), 20.0);
+        assert_eq!(score_domain("MAILINATOR.COM"), 20.0); // Case insensitive
+        
+        // Test regular domains (default score)
+        assert_eq!(score_domain("example.com"), 50.0);
+        assert_eq!(score_domain("test.org"), 50.0);
+        assert_eq!(score_domain("company.net"), 50.0);
     }
 
     #[test]
@@ -325,7 +339,7 @@ mod tests {
             assert!(result.is_valid, "Email {} should be valid", email);
             assert!(result.local_part.is_some());
             assert!(result.domain.is_some());
-            assert_eq!(result.domain_score, Some(80.0));
+            assert_eq!(result.domain_score, Some(50.0)); // Default score for regular domains
             assert_eq!(result.error_message, None);
         }
 

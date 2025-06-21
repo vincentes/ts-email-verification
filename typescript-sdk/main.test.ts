@@ -9,7 +9,7 @@ describe("EmailValidator", () => {
       expect(result.isValid).toBe(true);
       expect(result.localPart).toBe("test");
       expect(result.domain).toBe("example.com");
-      expect(result.domainScore).toBe(80.0);
+      expect(result.domainScore).toBe(50.0);
       expect(result.errorMessage).toBeUndefined();
     });
 
@@ -84,7 +84,7 @@ describe("EmailValidator", () => {
         expect(result.isValid).toBe(true);
         expect(result.localPart).toBeDefined();
         expect(result.domain).toBeDefined();
-        expect(result.domainScore).toBe(80.0);
+        expect(result.domainScore).toBe(50.0);
         expect(result.errorMessage).toBeUndefined();
       }
     });
@@ -160,7 +160,7 @@ describe("EmailValidator", () => {
         expect(result.isValid).toBe(true);
         expect(result.localPart).toBeDefined();
         expect(result.domain).toBeDefined();
-        expect(result.domainScore).toBe(80.0);
+        expect(result.domainScore).toBe(50.0);
         expect(result.errorMessage).toBeUndefined();
       });
     });

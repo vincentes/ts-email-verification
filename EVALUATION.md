@@ -26,11 +26,11 @@ A few distinctions. For the purpose of this challenge:
 
 
 ## Trade offs
-Using CommonJS as output for the `wasm-pack`, which means that the Rust WASM bindings only work for NodeJS environment unless transformation is done using babel plugins.
+1. Using CommonJS as output for the `wasm-pack`, which means that the Rust WASM bindings only work for NodeJS environment unless transformation is done using babel plugins.
 
-Another trade off was the fact that the `tarpaulin` code coverage report indicated 72% code coverage, which should be 80%+ ideally for critical systems like email validation.
+2. Another trade off was the fact that the `tarpaulin` code coverage report indicated 72% code coverage, which should be 80%+ ideally for critical systems like email validation.
 
-Finally, the domain scoring algorithm was simplified to:
+3. Finally, the domain scoring algorithm was simplified to:
 
 - Score of 80 for trusted domains:
   - google.com
@@ -40,6 +40,8 @@ Finally, the domain scoring algorithm was simplified to:
 - Score of 20 for disposable email domains:
   - mailinator.com
   - tempmail.com
+
+- Score of 50 for any other email domain.
 
 ## Potential Improvements 
 * Building for `web` usage. Needs a more comprehensive setup. However, if `vitest` was used instead of `jest`, most likely the transformations could be applied in the wrapper SDK. Browsers, APIs, and CLIs, could simply use the SDK. 
