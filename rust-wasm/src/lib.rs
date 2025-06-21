@@ -2,19 +2,31 @@ use serde::{Serialize, Deserialize};
 use regex::Regex;
 use wasm_bindgen::prelude::*;
 
+/// Result of email parsing and validation
+/// Contains validation status, parsed components, and domain risk scoring
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EmailParseResult {
+    /// Whether the email is valid according to RFC standards
     pub is_valid: bool,
+    /// The local part of the email (before the @ symbol)
     pub local_part: Option<String>,
+    /// The domain part of the email (after the @ symbol)
     pub domain: Option<String>,
-    pub domain_score: Option<f64>, // Risk score 0-100
+    /// Risk score for the domain (0-100, higher is more trusted)
+    pub domain_score: Option<f64>,
+    /// Error message if validation failed
     pub error_message: Option<String>
 }
 
+/// Error structure for email parsing failures
+/// Provides detailed error information for debugging and user feedback
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EmailParseError {
+    /// Type of error that occurred (e.g., "RegexError", "InvalidInput")
     pub error_type: String,
+    /// Human-readable error message
     pub message: String,
+    /// Additional error details if available
     pub details: Option<String>
 }
 
@@ -24,6 +36,25 @@ impl std::fmt::Display for EmailParseError {
     }
 }
 
+/// Scores a domain based on its trustworthiness and reputation
+/// 
+/// Returns a risk score from 0-100 where:
+/// - 80+ : Trusted domains (Google, Outlook, Yahoo)
+/// - 20-30: Disposable/temporary email domains
+/// - 50: Default score for regular domains
+/// 
+/// # Arguments
+/// * `domain` - The domain string to score (case-insensitive)
+/// 
+/// # Returns
+/// * `f64` - Risk score between 0 and 100
+/// 
+/// # Examples
+/// ```
+/// assert_eq!(score_domain("google.com"), 80.0);
+/// assert_eq!(score_domain("mailinator.com"), 20.0);
+/// assert_eq!(score_domain("example.com"), 50.0);
+/// ```
 fn score_domain(domain: &str) -> f64 {
     let domain_lower = domain.to_lowercase();
     
@@ -49,8 +80,35 @@ fn score_domain(domain: &str) -> f64 {
     return 50.0;
 }
 
+/// Parses and validates an email address according to RFC standards
+/// 
+/// Performs comprehensive email validation including:
+/// - Format validation using RFC-compliant regex
+/// - Length validation (max 320 characters)
+/// - Local part and domain extraction
+/// - Domain risk scoring
+/// - Edge case handling (consecutive dots, special characters)
+/// 
+/// # Arguments
+/// * `email` - The email string to validate
+/// 
+/// # Returns
+/// * `Result<EmailParseResult, EmailParseError>` - Validation result or error
+/// 
+/// # Examples
+/// ```
+/// // Valid email
+/// let result = parse_and_validate_email("user@example.com").unwrap();
+/// assert!(result.is_valid);
+/// assert_eq!(result.local_part, Some("user".to_string()));
+/// assert_eq!(result.domain, Some("example.com".to_string()));
+/// 
+/// // Invalid email
+/// let result = parse_and_validate_email("invalid-email").unwrap();
+/// assert!(!result.is_valid);
+/// assert_eq!(result.error_message, Some("Invalid email format".to_string()));
+/// ```
 pub fn parse_and_validate_email(email: &str) -> Result<EmailParseResult, EmailParseError> {
-    // Check for empty input
     if email.is_empty() {
         return Ok(EmailParseResult {
             is_valid: false,
@@ -61,7 +119,6 @@ pub fn parse_and_validate_email(email: &str) -> Result<EmailParseResult, EmailPa
         });
     }
 
-    // Check for length limit
     if email.len() > 320 {
         return Ok(EmailParseResult {
             is_valid: false,
@@ -72,8 +129,6 @@ pub fn parse_and_validate_email(email: &str) -> Result<EmailParseResult, EmailPa
         });
     }
 
-    // Validate the email format using regex
-    // Updated regex to prevent leading/trailing/consecutive dots in local part and leading/trailing dots in domain
     let email_regex = match Regex::new(r"^[a-zA-Z0-9_%+-](?:[a-zA-Z0-9._%+-]*[a-zA-Z0-9_%+-])?@[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$") {
         Ok(regex) => regex,
         Err(e) => return Err(EmailParseError {
@@ -93,7 +148,6 @@ pub fn parse_and_validate_email(email: &str) -> Result<EmailParseResult, EmailPa
         });
     }
 
-    // Extract the domain and local parts
     let parts: Vec<&str> = email.split('@').collect();
     if parts.len() != 2 {
         return Ok(EmailParseResult {
@@ -106,7 +160,6 @@ pub fn parse_and_validate_email(email: &str) -> Result<EmailParseResult, EmailPa
     }
 
     let local_part = parts[0];
-    // Disallow consecutive dots in local part
     if local_part.contains("..") {
         return Ok(EmailParseResult {
             is_valid: false,
@@ -120,7 +173,6 @@ pub fn parse_and_validate_email(email: &str) -> Result<EmailParseResult, EmailPa
     let local_part = local_part.to_string();
     let domain = parts[1].to_string();
 
-    // Validate the domain
     let domain_score = score_domain(&domain);
 
     Ok(EmailParseResult {
@@ -132,6 +184,23 @@ pub fn parse_and_validate_email(email: &str) -> Result<EmailParseResult, EmailPa
     })
 }
 
+/// WebAssembly entry point for email validation
+/// 
+/// This function is exposed to JavaScript via wasm-bindgen and provides
+/// the main interface for email validation from the TypeScript SDK.
+/// 
+/// # Arguments
+/// * `email` - The email string to validate
+/// 
+/// # Returns
+/// * `JsValue` - Serialized EmailParseResult or EmailParseError
+/// 
+/// # Examples
+/// ```javascript
+/// // From JavaScript/TypeScript
+/// const result = parse_and_validate_email_wasm("user@example.com");
+/// console.log(result.is_valid); // true
+/// ```
 #[wasm_bindgen]
 pub fn parse_and_validate_email_wasm(email: &str) -> JsValue {
     match parse_and_validate_email(email) {
@@ -144,6 +213,7 @@ pub fn parse_and_validate_email_wasm(email: &str) -> JsValue {
 mod tests {
     use super::*;
 
+    /// Tests valid email format validation
     #[test]
     fn test_valid_email() {
         // TODO: Test valid email formats
@@ -156,9 +226,9 @@ mod tests {
         assert_eq!(result.error_message, None);
     }
 
+    /// Tests invalid email format rejection
     #[test]
     fn test_invalid_email_format() {
-        // TODO: Test invalid email formats
         let email = "test2.com";
         let result = parse_and_validate_email(email).unwrap();
         assert!(!result.is_valid);
@@ -168,9 +238,9 @@ mod tests {
         assert_eq!(result.error_message, Some("Invalid email format".to_string()));
     }
 
+    /// Tests empty string input handling
     #[test]
     fn test_empty_email() {
-        // TODO: Test empty string input
         let email = "";
         let result = parse_and_validate_email(email).unwrap();
         assert!(!result.is_valid);
@@ -180,9 +250,9 @@ mod tests {
         assert_eq!(result.error_message, Some("Email cannot be empty".to_string()));
     }
 
+    /// Tests email length limit enforcement
     #[test]
     fn test_too_long_email() {
-        // TODO: Test email exceeding 320 characters
         let email = "a".repeat(321);
         let result = parse_and_validate_email(&email).unwrap();
         assert!(!result.is_valid);
@@ -192,6 +262,7 @@ mod tests {
         assert_eq!(result.error_message, Some("Email exceeds maximum length of 320 characters".to_string()));
     }
 
+    /// Tests domain scoring functionality
     #[test]
     fn test_domain_scoring() {
         // Test trusted domains
@@ -211,11 +282,10 @@ mod tests {
         assert_eq!(score_domain("company.net"), 50.0);
     }
 
+    /// Tests various edge cases and boundary conditions
+    /// TODO: Low priority 
     #[test]
-    // TODO: Low priority 
     fn test_edge_cases() {
-        // TODO: Test various edge cases
-        
         // Test special characters that might cause issues
         let special_char_emails = vec![
             "test@domain.com!",  // Exclamation at end
