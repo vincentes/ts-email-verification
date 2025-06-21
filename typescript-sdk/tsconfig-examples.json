@@ -1,0 +1,81 @@
+{
+  "examples": {
+    "esModules": {
+      "description": "ES Modules (Modern browsers, bundlers)",
+      "config": {
+        "compilerOptions": {
+          "module": "ES2022",
+          "target": "ES2022",
+          "moduleResolution": "node",
+          "esModuleInterop": true,
+          "allowSyntheticDefaultImports": true,
+          "strict": true,
+          "skipLibCheck": true,
+          "forceConsistentCasingInFileNames": true
+        }
+      }
+    },
+    "commonJS": {
+      "description": "CommonJS (Node.js)",
+      "config": {
+        "compilerOptions": {
+          "module": "CommonJS",
+          "target": "ES2020",
+          "moduleResolution": "node",
+          "esModuleInterop": true,
+          "allowSyntheticDefaultImports": true,
+          "outDir": "./dist",
+          "rootDir": "./src",
+          "strict": true
+        }
+      }
+    },
+    "amd": {
+      "description": "AMD (Legacy browsers)",
+      "config": {
+        "compilerOptions": {
+          "module": "AMD",
+          "target": "ES5",
+          "moduleResolution": "node",
+          "outDir": "./dist",
+          "strict": true
+        }
+      }
+    },
+    "umd": {
+      "description": "UMD (Universal)",
+      "config": {
+        "compilerOptions": {
+          "module": "UMD",
+          "target": "ES5",
+          "moduleResolution": "node",
+          "outDir": "./dist",
+          "strict": true
+        }
+      }
+    },
+    "system": {
+      "description": "SystemJS",
+      "config": {
+        "compilerOptions": {
+          "module": "System",
+          "target": "ES2020",
+          "moduleResolution": "node",
+          "outDir": "./dist",
+          "strict": true
+        }
+      }
+    },
+    "none": {
+      "description": "No modules (global scope)",
+      "config": {
+        "compilerOptions": {
+          "module": "None",
+          "target": "ES5",
+          "outDir": "./dist",
+          "strict": true
+        }
+      }
+    }
+  }
+} 

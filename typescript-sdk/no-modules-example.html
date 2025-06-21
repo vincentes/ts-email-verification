@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WASM Email Validator - No Modules Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .email-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .valid {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .invalid {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .loading {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>WASM Email Validator - No Modules Target</h1>
+    <p>This example uses the <code>--target no-modules</code> build, which loads WASM via traditional script tags.</p>
+    
+    <div>
+        <label for="emailInput">Email Address:</label>
+        <input type="email" id="emailInput" class="email-input" placeholder="Enter email address...">
+        <button id="validateBtn" onclick="validateEmail()" disabled>Validate Email</button>
+    </div>
+    
+    <div id="result"></div>
+    
+    <div>
+        <h3>Test Emails:</h3>
+        <button onclick="testEmail('test@example.com')">test@example.com</button>
+        <button onclick="testEmail('invalid-email')">invalid-email</button>
+        <button onclick="testEmail('user@domain.co.uk')">user@domain.co.uk</button>
+        <button onclick="testEmail('malformed@')">malformed@</button>
+        <button onclick="testEmail('user+tag@example.com')">user+tag@example.com</button>
+    </div>
+
+    <!-- Load the no-modules WASM script -->
+    <script src="../rust-wasm/pkg/email_validator_wasm.js"></script>
+    
+    <script>
+        let wasmInitialized = false;
+        
+        // Initialize WASM when page loads
+        async function initializeWasm() {
+            try {
+                // Show loading state
+                document.getElementById('result').innerHTML = 
+                    '<div class="result loading">Initializing WASM module...</div>';
+                
+                // Initialize WASM using the global wasm_bindgen object
+                await wasm_bindgen.init('../rust-wasm/pkg/email_validator_wasm_bg.wasm');
+                wasmInitialized = true;
+                
+                // Enable the validate button
+                document.getElementById('validateBtn').disabled = false;
+                
+                // Clear loading message
+                document.getElementById('result').innerHTML = 
+                    '<div class="result valid">✅ WASM module initialized successfully!</div>';
+                
+                console.log('WASM Email Validator initialized');
+            } catch (error) {
+                console.error('Failed to initialize WASM:', error);
+                document.getElementById('result').innerHTML = 
+                    '<div class="result invalid">❌ Failed to initialize WASM: ' + error.message + '</div>';
+            }
+        }
+        
+        // Validate email function
+        function validateEmail() {
+            if (!wasmInitialized) {
+                alert('WASM module not yet initialized. Please wait...');
+                return;
+            }
+            
+            const email = document.getElementById('emailInput').value.trim();
+            if (!email) {
+                alert('Please enter an email address');
+                return;
+            }
+            
+            try {
+                // Call the WASM function directly from global scope
+                const result = wasm_bindgen.parse_and_validate_email_wasm(email);
+                
+                displayResult(email, result);
+            } catch (error) {
+                console.error('Validation error:', error);
+                document.getElementById('result').innerHTML = 
+                    '<div class="result invalid">❌ Validation error: ' + error.message + '</div>';
+            }
+        }
+        
+        // Test email function
+        function testEmail(email) {
+            document.getElementById('emailInput').value = email;
+            validateEmail();
+        }
+        
+        // Display validation result
+        function displayResult(email, result) {
+            const resultDiv = document.getElementById('result');
+            
+            if (result.is_valid) {
+                resultDiv.innerHTML = `
+                    <div class="result valid">
+                        <h3>✅ Valid Email: ${email}</h3>
+                        <p><strong>Local part:</strong> ${result.local_part || 'N/A'}</p>
+                        <p><strong>Domain:</strong> ${result.domain || 'N/A'}</p>
+                        <p><strong>Domain score:</strong> ${result.domain_score || 'N/A'}</p>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="result invalid">
+                        <h3>❌ Invalid Email: ${email}</h3>
+                        <p><strong>Error:</strong> ${result.error_message || 'Unknown error'}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', initializeWasm);
+        
+        // Allow Enter key to trigger validation
+        document.getElementById('emailInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                validateEmail();
+            }
+        });
+    </script>
+</body>
+</html> 

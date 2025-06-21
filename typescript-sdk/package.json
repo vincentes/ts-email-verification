@@ -1,0 +1,38 @@
+{
+  "name": "@vbermudez/email-validator",
+  "version": "1.0.0",
+  "description": "Email validation and parsing service with Rust WASM backend",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist",
+    "wasm"
+  ],
+  "scripts": {
+    "build": "npm run build:wasm && npm run build:ts && npm run copy:wasm",
+    "build:wasm": "cd ../rust-wasm && wasm-pack build --target nodejs --out-dir ../typescript-sdk/wasm",
+    "build:ts": "rollup -c",
+    "copy:wasm": "cp -r wasm/* dist/",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "email-validator-wasm": "file:./wasm",
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.0.2",
+    "rollup": "^4.0.0",
+    "rollup-plugin-dts": "^6.0.0",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.8.3"
+  }
+}
