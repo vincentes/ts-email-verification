@@ -24,6 +24,7 @@ A few distinctions. For the purpose of this challenge:
 
 (2) Unexpected runtime errors such as regex compilation issues, were treated with `EmailParseError`.
 
+For batch-based return outputs, a mix of `EmailParseResult` and `EmailParseError`s is expected. (see `validateEmails` for reference)
 
 ## Trade offs
 1. Using CommonJS as output for the `wasm-pack`, which means that the Rust WASM bindings only work for NodeJS environment unless transformation is done using babel plugins.
