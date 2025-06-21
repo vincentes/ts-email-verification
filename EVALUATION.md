@@ -44,16 +44,12 @@ A few distinctions. For the purpose of this challenge:
 - Score of 50 for any other email domain.
 
 ## Potential Improvements 
-* Building for `web` usage. Needs a more comprehensive setup. However, if `vitest` was used instead of `jest`, most likely the transformations could be applied in the wrapper SDK. Browsers, APIs, and CLIs, could simply use the SDK. 
-
+* Building for `web` usage for ES module syntax.
+* Using `vitest`  instead of `jest` to not be restricted to `--target nodejs` for the WASM bindings.
 * Risks scoring system needs to have a more extensive list of trusted providers. Using a third-party API for risk scoring would be ideal depending on use case.
-
-* Uploading to NPM instead of requiring manually building the SDK for usage.
-
+* Installing the SDK from NPM instead of requiring manually building the SDK and using the relative project path.
 * Increase to 80%+ code coverage if used in a production environment.
-
 * Unicode and international domains should be valid.
-
 * Strict RFC-5321 compliance for edge cases for 100% valid email coverage.
 
 <img width="512" alt="Screenshot 2025-06-21 at 2 03 17 PM" src="https://github.com/user-attachments/assets/d480ad3e-236c-410b-9c9a-d0a5bf62cb90" />
