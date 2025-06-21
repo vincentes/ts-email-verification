@@ -55,3 +55,8 @@ A few distinctions. For the purpose of this challenge:
 * Unicode and international domains should be valid.
 
 * Strict RFC-5321 compliance for edge cases for 100% valid email coverage.
+
+<img width="512" alt="Screenshot 2025-06-21 at 2 03 17 PM" src="https://github.com/user-attachments/assets/d480ad3e-236c-410b-9c9a-d0a5bf62cb90" />
+
+<img width="877" alt="image" src="https://github.com/user-attachments/assets/b8c5b354-1d48-4f76-af41-f731d9f848b4" />
+
