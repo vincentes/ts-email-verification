@@ -46,7 +46,7 @@ npm install file:../path/to/typescript-sdk
 
 Validating a single email.
 ```typescript
-import { EmailValidator } from '@your-name/email-validator';
+import { EmailValidator } from '@vbermudez/email-validator';
 
 const result = await EmailValidator.validateEmail('test@example.com');
 console.log(result); 
