@@ -1,4 +1,4 @@
-import { parse_and_validate_email_wasm } from '../rust-wasm/pkg';
+import { parse_and_validate_email_wasm } from "./wasm";
 
 interface EmailValidationResult {
   isValid: boolean;
@@ -20,7 +20,7 @@ class EmailValidationError extends Error {
 
   constructor(message: string, errorType: string, details?: string) {
     super(message);
-    this.name = 'EmailValidationError';
+    this.name = "EmailValidationError";
     this.errorType = errorType;
     this.details = details;
   }
@@ -28,17 +28,14 @@ class EmailValidationError extends Error {
 
 class EmailValidator {
   private static validateInput(email: string): void {
-    if (typeof email !== 'string') {
-      throw new EmailValidationError(
-        'Email must be a string',
-        'InvalidInput'
-      );
+    if (typeof email !== "string") {
+      throw new EmailValidationError("Email must be a string", "InvalidInput");
     }
-    
+
     if (email.length > 320) {
       throw new EmailValidationError(
-        'Email exceeds maximum length of 320 characters',
-        'InvalidLength'
+        "Email exceeds maximum length of 320 characters",
+        "InvalidLength"
       );
     }
   }
@@ -48,9 +45,9 @@ class EmailValidator {
 
     try {
       const result = parse_and_validate_email_wasm(email);
-      
+
       // Check if the result is an error
-      if ('error_type' in result) {
+      if ("error_type" in result) {
         const error = result as EmailParseError;
         throw new EmailValidationError(
           error.message,
@@ -71,24 +68,25 @@ class EmailValidator {
       if (error instanceof EmailValidationError) {
         throw error;
       }
-      
+
       throw new EmailValidationError(
-        `WASM execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        'WasmError'
+        `WASM execution failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "WasmError"
       );
     }
   }
 
-  static async validateEmails(emails: string[]): Promise<EmailValidationResult[]> {
+  static async validateEmails(
+    emails: string[]
+  ): Promise<EmailValidationResult[]> {
     if (!Array.isArray(emails)) {
-      throw new EmailValidationError(
-        'Emails must be an array',
-        'InvalidInput'
-      );
+      throw new EmailValidationError("Emails must be an array", "InvalidInput");
     }
 
     const results: EmailValidationResult[] = [];
-    
+
     for (const email of emails) {
       try {
         const result = await this.validateEmail(email);
@@ -102,7 +100,7 @@ class EmailValidator {
         } else {
           results.push({
             isValid: false,
-            errorMessage: 'Unknown validation error',
+            errorMessage: "Unknown validation error",
           });
         }
       }
